@@ -93,15 +93,17 @@ let body;
 if(s.b)body=`<div class="box">`+s.b.map(x=>`<div class="bx" data-s="${x[0]} ${x[2].join(" ")}"><div class="t"><span>${x[0]}</span><span class="p">${x[1]} ج</span></div><ul>${x[2].map(l=>`<li>${l}</li>`).join("")}</ul></div>`).join("")+`</div>`;
 else body=`<div class="box"><table><thead><tr><th></th>${s.h.map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>`+s.r.map(r=>`<tr data-s="${r[0]}">`+r.map(c=>`<td>${c}</td>`).join("")+`</tr>`).join("")+`</tbody></table></div>`;
 return `<section data-c="${s.id}" data-i="${i}"><h2>${s.t}</h2>${s.n?`<p class="note">${s.n}</p>`:""}${body}</section>`}).join("");
+const norm=s=>(s||"").replace(/[\u064B-\u0652\u0640]/g,"").replace(/[أإآ]/g,"ا").replace(/ة/g,"ه").replace(/ى/g,"ي").replace(/ؤ/g,"و").replace(/ئ/g,"ي").toLowerCase();
 function render(){
-const k=q.value.trim();let any=false;
+const terms=norm(q.value).split(/\s+/).filter(Boolean),searching=terms.length>0;let any=false;
 document.querySelectorAll("section").forEach(sec=>{
-let show=cur==="all"||sec.dataset.c===cur,rows=sec.querySelectorAll("[data-s]"),hit=0;
-rows.forEach(r=>{const ok=!k||r.dataset.s.includes(k)||sec.querySelector("h2").textContent.includes(k);r.classList.toggle("hide",!ok);if(ok)hit++});
+const title=norm(sec.querySelector("h2").textContent);
+let show=searching||cur==="all"||sec.dataset.c===cur,hit=0;
+sec.querySelectorAll("[data-s]").forEach(r=>{const hay=norm(r.dataset.s)+" "+title;const ok=terms.every(t=>hay.includes(t));r.classList.toggle("hide",!ok);if(ok)hit++});
 show=show&&hit>0;sec.classList.toggle("hide",!show);if(show)any=true});
 none.classList.toggle("hide",any)}
 T.forEach(([id,l])=>{const b=document.createElement("button");b.textContent=l;b.className=id==="all"?"on":"";b.onclick=()=>{cur=id;tabs.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b));render();scrollTo({top:0})};tabs.appendChild(b)});
-q.oninput=render;
+["input","keyup","search","change"].forEach(e=>q.addEventListener(e,render));render();
 </script>
 </body>
 </html>
